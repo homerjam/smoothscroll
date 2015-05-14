@@ -1,0 +1,23 @@
+{
+  "name": "smoothscroll",
+  "main": "smoothscroll.js",
+  "version": "0.0.0",
+  "authors": [
+    "James Homer <jameshomer85@gmail.com>"
+  ],
+  "description": "Native JS plugin to smooth scrolling with a mouse wheel",
+  "keywords": [
+    "smooth",
+    "scroll",
+    "mouse",
+    "wheel"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
