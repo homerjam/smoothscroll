@@ -28,7 +28,7 @@
 
         // Overscroll
         overscroll: false, // false
-        overscrollThreshold: 200, // [px] 200
+        overscrollThreshold: 150, // [px] 150
         overscrollSelector: 'body', // body
 
         // Other
@@ -179,17 +179,21 @@
     /**
      * Pushes scroll actions to the scrolling queue.
      */
-    function scrollArray(elem, left, top, delay) {
+    function scrollArray(elem, left, top, touchpad, delay) {
+        touchpad = touchpad || false;
         delay = delay || 1000;
         directionCheck(left, top);
 
-        if (options.accelerationMax !== 1) {
+        var accelerationMax = options.accelerationMax;
+        var accelerationDelta = options.accelerationDelta;
+
+        if (accelerationMax !== 1) {
             var now = +new Date();
             var elapsed = now - lastScroll;
-            if (elapsed < options.accelerationDelta) {
+            if (elapsed < accelerationDelta) {
                 var factor = (1 + (30 / elapsed)) / 2;
                 if (factor > 1) {
-                    factor = Math.min(factor, options.accelerationMax);
+                    factor = Math.min(factor, accelerationMax);
                     left *= factor;
                     top *= factor;
                 }
@@ -217,19 +221,20 @@
             var now = +new Date();
             var scrollX = 0;
             var scrollY = 0;
+            var animationTime = touchpad ? options.animationTime / 4 : options.animationTime;
 
             for (var i = 0; i < que.length; i++) {
 
                 var item = que[i];
                 var elapsed = now - item.start;
-                var finished = (elapsed >= options.animationTime);
+                var finished = (elapsed >= animationTime);
 
                 // scroll position: [0, 1]
-                var position = (finished) ? 1 : elapsed / options.animationTime;
+                var position = (finished) ? 1 : elapsed / animationTime;
 
                 // easing [optional]
                 if (options.pulseAlgorithm) {
-                    position = pulse(position);
+                    position = pulse(position, touchpad);
                 }
 
                 // only need the difference
@@ -256,6 +261,7 @@
                 if (options.overscroll) {
                     var translateY = 0;
 
+                    // translate if scroll is top/bottom of window
                     if ((window.scrollY === 0 && scrollY <= 0) || (window.scrollY === overscrollElement.scrollHeight - window.innerHeight && scrollY >= 0)) {
                         translateY = -scrollY;
 
@@ -263,10 +269,16 @@
                         window.scrollBy(scrollX, scrollY);
                     }
 
+                    if (touchpad) {
+                        translateY *= Math.min(Math.abs(translateY), 4);
+                    }
+
+                    // reset overscrolled after snap back
                     if (translateY === 0) {
                         overscrolled = false;
                     }
 
+                    // dispatch overscroll event if over threshold
                     if (Math.abs(translateY) > options.overscrollThreshold && !overscrolled) {
                         overscrolled = true;
 
@@ -374,11 +386,7 @@
             deltaY *= options.stepSize / 120;
         }
 
-        if (touchpad) {
-            deltaY *= 2;
-        }
-
-        scrollArray(overflowing, -deltaX, -deltaY);
+        scrollArray(overflowing, -deltaX, -deltaY, touchpad);
 
         event.preventDefault();
     }
@@ -623,11 +631,11 @@
      * - Lets the exponential bleed away the velocity over a longer interval
      * - Michael Herf, http://stereopsis.com/stopping/
      */
-    function pulse_(x) {
+    function _pulse(x, touchpad) {
         var val, start, expx;
 
         // test
-        x = x * options.pulseScale;
+        x = x * (touchpad ? options.pulseScale / 4 : options.pulseScale);
 
         if (x < 1) { // acceleartion
             val = x - (1 - Math.exp(-x));
@@ -641,10 +649,11 @@
             expx = 1 - Math.exp(-x);
             val = start + (expx * (1 - start));
         }
+
         return val * options.pulseNormalize;
     }
 
-    function pulse(x) {
+    function pulse(x, touchpad) {
         if (x >= 1) {
             return 1;
         }
@@ -653,9 +662,9 @@
         }
 
         if (options.pulseNormalize === 1) {
-            options.pulseNormalize /= pulse_(1);
+            options.pulseNormalize /= _pulse(1, touchpad);
         }
-        return pulse_(x);
+        return _pulse(x);
     }
 
     var isChrome = /chrome/i.test(window.navigator.userAgent);
