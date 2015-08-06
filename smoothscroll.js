@@ -265,7 +265,7 @@
                     if (Math.abs(translateY) > options.overscrollThreshold) {
                         var event = new CustomEvent('overscroll', {
                             detail: {
-                                direction: window.scrollY === 0 ? 'top' : 'bottom'
+                                direction: scrollY < 0 ? 'top' : 'bottom'
                             }
                         });
 
