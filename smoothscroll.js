@@ -174,6 +174,7 @@
     var que = [];
     var pending = false;
     var lastScroll = +new Date();
+    var overscrolled = false;
 
     /**
      * Pushes scroll actions to the scrolling queue.
@@ -262,7 +263,13 @@
                         window.scrollBy(scrollX, scrollY);
                     }
 
-                    if (Math.abs(translateY) > options.overscrollThreshold) {
+                    if (translateY === 0) {
+                        overscrolled = false;
+                    }
+
+                    if (Math.abs(translateY) > options.overscrollThreshold && !overscrolled) {
+                        overscrolled = true;
+
                         var event = new CustomEvent('overscroll', {
                             detail: {
                                 direction: scrollY < 0 ? 'top' : 'bottom'
