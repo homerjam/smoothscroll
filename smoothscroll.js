@@ -258,7 +258,10 @@
 
             // scroll left and top
             if (scrollWindow) {
-                if (options.overscroll) {
+                var overscrollDisabled = !!(overscrollElement.getAttribute('overscroll') && JSON.parse(overscrollElement.getAttribute('overscroll')) === false);
+
+                if (options.overscroll && !overscrollDisabled) {
+
                     var translateY = 0;
 
                     // translate if scroll is top/bottom of window
