@@ -1,7 +1,7 @@
 {
   "name": "native-smoothscroll",
   "main": "smoothscroll.js",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "authors": [
     "James Homer <jameshomer85@gmail.com>"
   ],

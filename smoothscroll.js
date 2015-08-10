@@ -175,6 +175,7 @@
     var pending = false;
     var lastScroll = +new Date();
     var overscrolled = false;
+    var overscrollMax = 0;
 
     /**
      * Pushes scroll actions to the scrolling queue.
@@ -184,7 +185,7 @@
         delay = delay || 1000;
         directionCheck(left, top);
 
-        var accelerationMax = options.accelerationMax;
+        var accelerationMax = touchpad ? options.accelerationMax / 2 : options.accelerationMax;
         var accelerationDelta = options.accelerationDelta;
 
         if (accelerationMax !== 1) {
@@ -221,16 +222,16 @@
             var now = +new Date();
             var scrollX = 0;
             var scrollY = 0;
-            var animationTime = touchpad ? options.animationTime / 4 : options.animationTime;
+            var animationTime = options.animationTime;
 
             for (var i = 0; i < que.length; i++) {
 
                 var item = que[i];
                 var elapsed = now - item.start;
-                var finished = (elapsed >= animationTime);
+                var finished = elapsed >= animationTime;
 
                 // scroll position: [0, 1]
-                var position = (finished) ? 1 : elapsed / animationTime;
+                var position = finished ? 1 : elapsed / animationTime;
 
                 // easing [optional]
                 if (options.pulseAlgorithm) {
@@ -272,13 +273,10 @@
                         window.scrollBy(scrollX, scrollY);
                     }
 
-                    if (touchpad) {
-                        translateY *= Math.min(Math.abs(translateY), 4);
-                    }
-
                     // reset overscrolled after snap back
                     if (translateY === 0) {
                         overscrolled = false;
+                        overscrollMax = 0;
                     }
 
                     // dispatch overscroll event if over threshold
@@ -294,7 +292,13 @@
                         window.dispatchEvent(event);
                     }
 
-                    overscrollElement.style.transform = 'translate(0, ' + translateY + 'px)';
+                    if (Math.abs(translateY) > overscrollMax) {
+                        overscrollMax = Math.abs(translateY);
+                    }
+
+                    // if (!overscrolled || Math.abs(translateY) >= overscrollMax) {
+                        overscrollElement.style.transform = 'translate(0, ' + translateY + 'px)';
+                    // }
 
                 } else {
                     window.scrollBy(scrollX, scrollY);
@@ -638,7 +642,7 @@
         var val, start, expx;
 
         // test
-        x = x * (touchpad ? options.pulseScale / 4 : options.pulseScale);
+        x = x * options.pulseScale;
 
         if (x < 1) { // acceleartion
             val = x - (1 - Math.exp(-x));
@@ -660,6 +664,7 @@
         if (x >= 1) {
             return 1;
         }
+
         if (x <= 0) {
             return 0;
         }
@@ -667,6 +672,7 @@
         if (options.pulseNormalize === 1) {
             options.pulseNormalize /= _pulse(1, touchpad);
         }
+
         return _pulse(x);
     }
 
