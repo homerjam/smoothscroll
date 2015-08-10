@@ -259,7 +259,7 @@
 
             // scroll left and top
             if (scrollWindow) {
-                var overscrollDisabled = !!(overscrollElement.getAttribute('overscroll') && JSON.parse(overscrollElement.getAttribute('overscroll')) === false);
+                var overscrollDisabled = !!(overscrollElement && overscrollElement.getAttribute('overscroll') && JSON.parse(overscrollElement.getAttribute('overscroll')) === false);
 
                 if (options.overscroll && !overscrollDisabled) {
 
